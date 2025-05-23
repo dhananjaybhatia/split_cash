@@ -117,6 +117,13 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#F4F1EC] text-foreground;
   }
+}
+
+@utility gradient {
+  @apply bg-gradient-to-r from-sky-500 via-rose-400 to-indigo-600;
+}
+@utility gradient-title{
+  @apply gradient font-extrabold tracking-tight text-transparent bg-clip-text pb-2 pr-2
 }
