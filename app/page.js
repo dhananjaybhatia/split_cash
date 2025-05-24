@@ -1,14 +1,15 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { FEATURES } from "@/lib/landing";
+import { Card, CardContent } from "@/components/ui/card";
+import { FEATURES, STEPS, TESTIMONIALS } from "@/lib/landing";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col pt-16 pb-10">
+    <div className="flex flex-col pt-16 ">
       <section className="mt-20 pb-12  space-y-10 md:space-y-20 px-5 ">
         <div className="container mx-auto px-4 md:px-6 text-center space-y-6 ">
           <Badge
@@ -65,7 +66,10 @@ export default function Home() {
           >
             Features
           </Badge>
-          <p className="gradient-title text-3xl md:text-4xl max-w-3xl mx-auto">
+          <h2 className="gradient-title text-3xl md:text-4xl max-w-3xl mx-auto">
+            Everything yu need to split expenses
+          </h2>
+          <p className="mx-auto mt-3 max-w-[700px] me:text-xl/relaxed text-[#4A5759]">
             Our platform provides all the tools you need to handle shared
             expenses with ease.
           </p>
@@ -79,12 +83,100 @@ export default function Home() {
                   <Icon className={`h-6 w-6 ${color}`} />
                 </div>
                 <h3 className="font-bold">{title}</h3>
-                <p>{description}</p>
+                <p className="text-[#4e5050]">{description}</p>
               </Card>
             ))}
           </div>
         </div>
       </section>
+      <section id="how-it-works" className="mt-15">
+        <div className="container mx-auto px-4 md:px-6 text-center space-y-6">
+          <Badge
+            variant="outline"
+            className="bg-[#edafcf] text-[#4A5759] px-6 py-2 text-sm rounded-full"
+          >
+            How It Works
+          </Badge>
+          <h2 className="gradient-title text-3xl md:text-4xl max-w-3xl mx-auto">
+            Splitting expenses has never been easier.
+          </h2>
+          <p className="mx-auto mt-3 max-w-[700px] me:text-xl/relaxed text-[#4A5759]">
+            Follow these simple steps to start tracking and splitting expenses
+            with friends.
+          </p>
+          <div className="mx-auto mt-12 grid max-w-5xl gap-8  lg:grid-cols-3">
+            {STEPS.map(({ label, title, description }) => (
+              <div key={label} className="flex flex-col items-center space-y-4">
+                <div className="flex h-12 w-12 justify-center items-center rounded-full bg-[#BBB5A8] text-[#4A5759]">
+                  {label}
+                </div>
+                <h3 className="font-bold">{title}</h3>
+                <p className="text-[#4e5050]">{description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="mt-15">
+        <div className="container mx-auto px-4 md:px-6 text-center space-y-6">
+          <Badge
+            variant="outline"
+            className="bg-[#edafcf] text-[#4A5759] px-6 py-2 text-sm rounded-full"
+          >
+            Testimonials
+          </Badge>
+          <h2 className="gradient-title text-3xl md:text-4xl max-w-3xl mx-auto">
+            What our users are saying
+          </h2>
+
+          <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {TESTIMONIALS.map(({ quote, name, image, role }) => (
+              <Card key={quote}>
+                <CardContent className="space-y-4 p-6">
+                  <p className="text-[#4A5759]">{quote}</p>
+                  <div className="flex items-center space-x-3">
+                    {" "}
+                    <Avatar>
+                      <AvatarImage src={image} alt={name} />
+                      <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="text-left">
+                      <p className="text-sm font-medium">{name}</p>
+                      <p className="text-sm text-muted-foreground">{role}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="gradient p-20 mt-10">
+        <div className="container mx-auto px-4 md:px-6 text-center space-y-6">
+          <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl text-[#F4F1EC]">
+            Ready to simplify expense sharing?
+          </h2>
+          <p className="mx-auto max-w-[700px] text-[#EBE1D7] md:text-xl/relaxed">
+            Join thousands of users who have made splitting expenses
+            stress-free.
+          </p>
+          <Button
+            asChild
+            size={"lg"}
+            className="bg-[#ff0054] text-[#F7E1D7] transition transform hover:scale-105 border-none"
+          >
+            <Link href="/dashboard">
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+      <footer className=" text-[#4A5759] py-6 ">
+        <div className="container mx-auto px-4 text-center text-sm">
+          &copy; {new Date().getFullYear()} DBhatia.
+        </div>
+      </footer>
     </div>
   );
 }
