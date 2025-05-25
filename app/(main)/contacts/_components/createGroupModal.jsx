@@ -7,15 +7,82 @@ import {
 } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useConvexQuery } from "@/hooks/use-convex-query";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { api } from "@/convex/_generated/api";
+import { useState } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { UserPlus, X } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+
+const groupSchema = z.object({
+  name: z.string().min(1, "Group name is required."),
+  description: z.string().optional(),
+});
 
 const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [searchQuery, setSetsearchQuery] = useState("");
+  const [commandOpen, setCommandOpen] = useState(false);
+
+  const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
+  const { data: searchResults, isLoading: isSearching } = useConvexQuery(
+    api.users.searchUsers,
+    { query: searchQuery }
+  );
+  console.log("Search Results:", searchResults);
+
+  // const addMember = (user) => {
+  //   if (!selectedMembers.some((m) => m.id === user.id)) {
+  //     setSelectedMembers([...selectedMembers, user]);
+  //   }
+  //   setCommandOpen(false);
+  // };
+
+  const addMember = (user) => {
+    // Prevent adding the current user or duplicates
+    if (user.id === currentUser?._id) return;
+    if (selectedMembers.some((m) => m.id === user.id)) return;
+
+    setSelectedMembers((prev) => [...prev, user]);
+    setCommandOpen(false);
+    setSetsearchQuery(""); // Clear search after selection
+  };
+
+  const removeMember = (userId) => {
+    setSelectedMembers((prevMembers) =>
+      prevMembers.filter((m) => m.id !== userId)
+    );
+  };
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
   } = useForm({
-    resolver: zodResolver,
+    resolver: zodResolver(groupSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
   });
 
   const handleClose = () => {
@@ -27,6 +94,139 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
         <DialogHeader>
           <DialogTitle>Create New Group</DialogTitle>
         </DialogHeader>
+        <form className="space-y-4">
+          <div className="space-y-4">
+            <Label htmlFor="name">Group Name</Label>
+            <Input
+              className=""
+              id="name"
+              placeholder="Enter group name"
+              {...register("name")}
+            />
+            {errors.name && (
+              <p className="text-sm text-red-500">{errors.name.message}</p>
+            )}
+          </div>
+          <div className="space-y-4">
+            <Label htmlFor="description">Description (Optional)</Label>
+            <Textarea
+              className=""
+              id="description"
+              placeholder="Enter group description"
+              {...register("description")}
+            />
+          </div>
+          <div className="space-y-4">
+            <Label>Members</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {currentUser && (
+                <Badge variant="secondary" className="px-3 py-1">
+                  <Avatar className="h-5 w-5 mr-2">
+                    <AvatarImage src={currentUser.imageUrl} />
+                    <AvatarFallback>
+                      {currentUser.name?.charAt(0) || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{currentUser.name} (You)</span>
+                </Badge>
+              )}
+              {/* selected members */}
+              {selectedMembers.map((member) => (
+                <Badge
+                  key={member.id}
+                  variant="secondary"
+                  className="px-3 py-1"
+                >
+                  <Avatar className="h-5 w-5 mr-2">
+                    <AvatarImage src={member.imageUrl} />
+                    <AvatarFallback className="bg-[#f15bb5] text-white">
+                      {member.name?.charAt(0) || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{member.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 rounded-full p-0 text-muted-foreground hover:bg-red-100 hover:text-destructive"
+                    onClick={() => removeMember(member.id)}
+                  >
+                    <div className="flex h-3 w-3 items-center justify-center rounded-full border border-muted-foreground/30 hover:border-destructive/50">
+                      <X className="h-2 w-2" />
+                    </div>
+                  </Button>
+                </Badge>
+              ))}
+              {/* add user to selected members */}
+              <Popover open={commandOpen} onOpenChange={setCommandOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="out;line"
+                    size="sm"
+                    className="h-8 gap-1 text-xs"
+                  >
+                    <UserPlus className="h-3.5 w-3.5" />
+                    Add members
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0" align="start" side="bottom">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search by name or email..."
+                      value={searchQuery}
+                      onValueChange={setSetsearchQuery}
+                    />
+                    <CommandList>
+                      <CommandEmpty>
+                        {searchQuery.length < 2 ? (
+                          <p className="py-3 px-4 text-sm text-center text-muted-foreground">
+                            Type at least 2 characters to search
+                          </p>
+                        ) : isSearching ? (
+                          <p className="py-3 px-4 text-sm text-center text-muted-foreground">
+                            Searching...
+                          </p>
+                        ) : (
+                          <p className="py-3 px-4 text-sm text-center text-muted-foreground">
+                            No users found.
+                          </p>
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup heading="Users">
+                        {searchResults?.map((user) => (
+                          <CommandItem
+                            key={user.id}
+                            value={user.name + user.email}
+                            onSelect={() => addMember(user)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6 ">
+                                {user.imageUrl ? (
+                                  <AvatarImage src={user.imageUrl} />
+                                ) : (
+                                  <AvatarFallback className="bg-[#f15bb5] text-white">
+                                    {user.name?.charAt(0)?.toUpperCase() ?? "?"}
+                                  </AvatarFallback>
+                                )}
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="text-sm">{user.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {user.email}
+                                </span>
+                              </div>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </form>
         <DialogFooter>Footer</DialogFooter>
       </DialogContent>
     </Dialog>

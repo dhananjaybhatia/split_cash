@@ -11,7 +11,7 @@ export const useConvexQuery = (query, ...args) => {
   useEffect(() => {
     if (result === undefined) {
       setIsLoading(true);
-    } else {
+    } else {  
       try {
         setData(result);
         setError(null);
