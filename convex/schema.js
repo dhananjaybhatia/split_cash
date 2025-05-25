@@ -20,7 +20,6 @@ export default defineSchema({
     date: v.number(),
     paidByUserId: v.id("users"),
     splitType: v.string(),
-    splits: v.array(),
     splits: v.array(
       v.object({
         userId: v.id("users"),
