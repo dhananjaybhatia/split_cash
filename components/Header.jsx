@@ -60,25 +60,23 @@ const Header = () => {
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden md:inline">Dashboard</span>
             </Link>
+
+            <SignOutButton>
+              <Button className="bg-[#ff0054] text-[#F7E1D7] transition transform hover:scale-105 border-none">
+                Sign Out
+              </Button>
+            </SignOutButton>
           </Authenticated>
-          <UserButton />
 
           <Unauthenticated>
             <SignInButton>
               <Button
                 variant={"ghost"}
-                className={
-                  "text-sm text-[#4A5759] hover:text-[#2a3132] transition transform hover:scale-110"
-                }
+                className="text-sm text-[#4A5759] hover:text-[#2a3132] transition transform hover:scale-110"
               >
                 Sign In
               </Button>
             </SignInButton>
-            <SignOutButton>
-              <Button className="bg-[#ff0054] text-[#F7E1D7] transition transform hover:scale-105 border-none">
-                Get Started
-              </Button>
-            </SignOutButton>
           </Unauthenticated>
         </div>
       </nav>

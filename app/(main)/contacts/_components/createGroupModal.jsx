@@ -11,7 +11,7 @@ import { z } from "zod";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useConvexQuery } from "@/hooks/use-convex-query";
+import { useConvexMutation, useConvexQuery } from "@/hooks/use-convex-query";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { api } from "@/convex/_generated/api";
@@ -31,6 +31,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { toast } from "sonner";
 
 const groupSchema = z.object({
   name: z.string().min(1, "Group name is required."),
@@ -39,7 +40,7 @@ const groupSchema = z.object({
 
 const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [searchQuery, setSetsearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [commandOpen, setCommandOpen] = useState(false);
 
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
@@ -49,12 +50,7 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
   );
   console.log("Search Results:", searchResults);
 
-  // const addMember = (user) => {
-  //   if (!selectedMembers.some((m) => m.id === user.id)) {
-  //     setSelectedMembers([...selectedMembers, user]);
-  //   }
-  //   setCommandOpen(false);
-  // };
+  const createGroup = useConvexMutation(api.contacts.createGroup);
 
   const addMember = (user) => {
     // Prevent adding the current user or duplicates
@@ -63,7 +59,7 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
 
     setSelectedMembers((prev) => [...prev, user]);
     setCommandOpen(false);
-    setSetsearchQuery(""); // Clear search after selection
+    setSearchQuery(""); // Clear search after selection
   };
 
   const removeMember = (userId) => {
@@ -85,7 +81,26 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
     },
   });
 
+  const onSubmit = async (data) => {
+    try {
+      const memberIds = selectedMembers.map((m) => m.id);
+      const groupId = await createGroup.mutate({
+        name: data.name,
+        description: data.description,
+        members: memberIds,
+      });
+      toast.success("Group created successfully!");
+      handleClose();
+      if (onSuccess) onSuccess(groupId);
+    } catch (error) {
+      toast.error("Failed to create group: " + error.message);
+    }
+  };
+
   const handleClose = () => {
+    reset();
+    setSelectedMembers([]);
+    setSearchQuery("");
     onClose();
   };
   return (
@@ -94,7 +109,7 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
         <DialogHeader>
           <DialogTitle>Create New Group</DialogTitle>
         </DialogHeader>
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-4">
             <Label htmlFor="name">Group Name</Label>
             <Input
@@ -131,7 +146,7 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
                 </Badge>
               )}
               {/* selected members */}
-              {selectedMembers.map((member) => (
+              {selectedMembers?.map((member) => (
                 <Badge
                   key={member.id}
                   variant="secondary"
@@ -162,7 +177,7 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
                 <PopoverTrigger asChild>
                   <Button
                     type="button"
-                    variant="out;line"
+                    variant="outline"
                     size="sm"
                     className="h-8 gap-1 text-xs"
                   >
@@ -175,7 +190,7 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
                     <CommandInput
                       placeholder="Search by name or email..."
                       value={searchQuery}
-                      onValueChange={setSetsearchQuery}
+                      onValueChange={setSearchQuery}
                     />
                     <CommandList>
                       <CommandEmpty>
@@ -225,9 +240,29 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
                 </PopoverContent>
               </Popover>
             </div>
+            {selectedMembers.length === 0 && (
+              <p className="text-amber-600 text-xs">
+                **Add at least one other person to the group.
+              </p>
+            )}
           </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={handleClose}
+              className="bg-amber-500"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-green-600"
+              type="submit"
+              disabled={isSubmitting || selectedMembers === 0}
+            >
+              {isSubmitting ? "Creating..." : "Create Group"}
+            </Button>
+          </DialogFooter>
         </form>
-        <DialogFooter>Footer</DialogFooter>
       </DialogContent>
     </Dialog>
   );
