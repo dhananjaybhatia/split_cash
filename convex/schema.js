@@ -46,6 +46,7 @@ export default defineSchema({
       })
     ),
   }),
+  
   settlements: defineTable({
     amount: v.number(),
     note: v.optional(v.string()),
