@@ -36,7 +36,7 @@ const page = () => {
     balanceLoading || totalSpentLoading || monthlySpentLoading || groupsLoading;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6 font-mono">
       {isLoading ? (
         <div className="w-full py-12 flex justify-center">
           <BarLoader width={"100%"} color="#36d7b7" />
@@ -56,7 +56,7 @@ const page = () => {
             {/* 🟣 Total Balance Card */}
             <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition">
               <CardHeader className="pb-2 border-b border-zinc-100">
-                <CardTitle className="text-md font-semibold text-zinc-700 tracking-tight text-center font-mono">
+                <CardTitle className="text-md font-semibold text-zinc-700 tracking-tight text-center">
                   Total Balance
                 </CardTitle>
               </CardHeader>
@@ -151,10 +151,10 @@ const page = () => {
                 monthlySpent={monthlySpent}
               />
             </div>
-            <div className="space-y-6">
-              <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition ">
+            <div className="space-y-4">
+              <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition font-mono">
                 <CardHeader className="pb-2 border-b border-zinc-100 flex items-center justify-between">
-                  <CardTitle className="text-md font-semibold text-zinc-700 tracking-tight text-center font-mono">
+                  <CardTitle className="text-md font-semibold text-zinc-700 tracking-tight text-center ">
                     Balance Details
                   </CardTitle>
                   <Button variant="link" asChild className="p-0">
@@ -183,14 +183,11 @@ const page = () => {
                   </Button>
                 </CardHeader>
 
-                <CardContent className="pt-4">
+                <CardContent className="pt-1.5">
                   <GroupList groups={groups} />
                 </CardContent>
                 <CardFooter>
-                  <Button
-                    asChild
-                    className="w-full bg-[#9A9175] text-lg font-mono"
-                  >
+                  <Button asChild className="w-full bg-[#9A9175] text-lg">
                     <Link href="/contacts?createGroup=true">
                       <Users className="mr-2 h-4 w-4" /> Create New Group
                     </Link>
