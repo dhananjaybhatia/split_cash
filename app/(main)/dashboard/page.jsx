@@ -1,13 +1,22 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
 import { useConvexQuery } from "@/hooks/use-convex-query";
-import { PlusCircle } from "lucide-react";
+import { ChevronRight, PlusCircle, Users } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { BarLoader } from "react-spinners";
+import ExpenseSummary from "./components/expenseSummary";
+import BalanceSummary from "./components/balanceSummary";
+import GroupList from "./components/groupList";
 
 const page = () => {
   const { data: balances, isLoading: balanceLoading } = useConvexQuery(
@@ -27,7 +36,7 @@ const page = () => {
     balanceLoading || totalSpentLoading || monthlySpentLoading || groupsLoading;
 
   return (
-    <div>
+    <div className="container mx-auto py-6 space-y-6">
       {isLoading ? (
         <div className="w-full py-12 flex justify-center">
           <BarLoader width={"100%"} color="#36d7b7" />
@@ -136,8 +145,59 @@ const page = () => {
             </Card>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">Expenses Summary</div>
-            <div className="space-y-6">Expenses Summary</div>
+            <div className="lg:col-span-2 space-y-6">
+              <ExpenseSummary
+                totalSpent={totalSpent}
+                monthlySpent={monthlySpent}
+              />
+            </div>
+            <div className="space-y-6">
+              <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition ">
+                <CardHeader className="pb-2 border-b border-zinc-100 flex items-center justify-between">
+                  <CardTitle className="text-md font-semibold text-zinc-700 tracking-tight text-center font-mono">
+                    Balance Details
+                  </CardTitle>
+                  <Button variant="link" asChild className="p-0">
+                    <Link href="/contacts">
+                      View All
+                      <ChevronRight className="ml-1" />
+                    </Link>
+                  </Button>
+                </CardHeader>
+
+                <CardContent className="pt-4">
+                  <BalanceSummary balances={balances} />
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition ">
+                <CardHeader className="pb-2 border-b border-zinc-100 flex items-center justify-between">
+                  <CardTitle className="text-md font-semibold text-zinc-700 tracking-tight text-center font-mono">
+                    Your Groups
+                  </CardTitle>
+                  <Button variant="link" asChild className="p-0">
+                    <Link href="/contacts">
+                      View All
+                      <ChevronRight className="ml-1" />
+                    </Link>
+                  </Button>
+                </CardHeader>
+
+                <CardContent className="pt-4">
+                  <GroupList groups={groups} />
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    asChild
+                    className="w-full bg-[#9A9175] text-lg font-mono"
+                  >
+                    <Link href="/contacts?createGroup=true">
+                      <Users className="mr-2 h-4 w-4" /> Create New Group
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
           </div>
         </>
       )}
