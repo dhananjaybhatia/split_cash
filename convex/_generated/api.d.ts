@@ -15,6 +15,8 @@ import type {
 } from "convex/server";
 import type * as contacts from "../contacts.js";
 import type * as dashboard from "../dashboard.js";
+import type * as expense from "../expense.js";
+import type * as groups from "../groups.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 
@@ -29,6 +31,8 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   contacts: typeof contacts;
   dashboard: typeof dashboard;
+  expense: typeof expense;
+  groups: typeof groups;
   seed: typeof seed;
   users: typeof users;
 }>;

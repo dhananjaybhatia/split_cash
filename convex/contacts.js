@@ -152,6 +152,7 @@ export const createGroup = mutation({
   },
   handler: async (ctx, args) => {
     const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
+    if (!currentUser) throw new Error("Not authenticated");
 
     if (!args.name.trim()) throw new Error("Group name cannot be empty.");
 
