@@ -119,24 +119,38 @@ export const getGroupExpenses = query({
 });
 
 export const deleteExpense = mutation({
+  // 💡 Step 0: Define the input we expect: an expense ID
   args: { expenseId: v.id("expenses") },
-  handler: async (ctx, args) => {
-    // Step 1: Get the current user who is using the app
-    const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
-    if (!currentUser) throw new Error("Not authenticated"); // If not logged in, stop here.
 
+  handler: async (ctx, args) => {
+    // ✅ Step 1: Who is trying to delete?
+    const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
+
+    // ❌ If the user is not logged in, we stop here.
+    if (!currentUser) throw new Error("Not authenticated");
+
+    // ✅ Step 2: Find the expense that the user wants to delete
     const expense = await ctx.db.get(args.expenseId);
+
+    // ❌ If the expense doesn’t exist (maybe already deleted), stop
     if (!expense) {
       throw new Error("Expense not found");
     }
 
+    // 🔒 Step 3: Only allow deleting if:
+    // - You created the expense
+    // - OR you paid for it
     if (
-      expense.createdBy !== currentUser._id &&
-      expense.paidByUserId !== currentUser._id
+      expense.createdBy !== currentUser._id && // You didn't create it
+      expense.paidByUserId !== currentUser._id // And you also didn’t pay for it
     ) {
       throw new Error("You don't have permission to delete this expense");
     }
+
+    // ✅ Step 4: If we passed all checks, delete the expense from the database
     await ctx.db.delete(args.expenseId);
+
+    // ✅ Step 5: Return a success status to the frontend
     return { success: true };
   },
 });

@@ -45,7 +45,10 @@ const page = () => {
         <>
           <div className="flex justify-between items-center">
             <h1 className="text-5xl gradient-title">Dashboard</h1>
-            <Button asChild className="bg-[#727474]">
+            <Button
+              asChild
+              className="bg-[#727474] text-white hover:bg-[#2f5e56] transition hover:scale-105"
+            >
               <Link href="/expenses/new">
                 <PlusCircle className="mr-2" />
                 Add Expenses
@@ -187,7 +190,10 @@ const page = () => {
                   <GroupList groups={groups} />
                 </CardContent>
                 <CardFooter>
-                  <Button asChild className="w-full bg-[#9A9175] text-lg">
+                  <Button
+                    asChild
+                    className="w-full bg-[#9A9175] hover:bg-[#827a63] text-lg hover:scale-105"
+                  >
                     <Link href="/contacts?createGroup=true">
                       <Users className="mr-2 h-4 w-4" /> Create New Group
                     </Link>

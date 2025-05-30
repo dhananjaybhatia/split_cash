@@ -6,27 +6,31 @@ export const getExpensesBetweenUsers = query({
   args: {
     userId: v.id("users"),
   },
-  handlers: async (ctx, { userId }) => {
+  handler: async (ctx, { userId }) => {
     const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
     if (!currentUser) throw new Error("Not authenticated");
-    if (currentUser._id === userId) throw new Error("Canot query yourself");
+    if (currentUser._id === userId) throw new Error("Cannot query yourself");
 
-    const mePaid = await ctx.db
+    // Get expenses where either user paid (in personal context)
+    const myPaid = await ctx.db
       .query("expenses")
       .withIndex("by_user_and_group", (q) =>
         q.eq("paidByUserId", currentUser._id).eq("groupId", undefined)
       )
       .collect();
 
-    const theyPaid = await ctx.db
+    const theirPaid = await ctx.db
       .query("expenses")
       .withIndex("by_user_and_group", (q) =>
         q.eq("paidByUserId", userId).eq("groupId", undefined)
       )
       .collect();
-    const candidateExpenses = [...mePaid, ...theyPaid];
 
-    const expense = candidateExpenses.filter((e) => {
+    // Merge candidate expenses
+    const candidateExpenses = [...myPaid, ...theirPaid];
+
+    // Filter to only include expenses where both users are involved
+    const expenses = candidateExpenses.filter((e) => {
       const meInSplits = e.splits.some((s) => s.userId === currentUser._id);
       const themInSplits = e.splits.some((s) => s.userId === userId);
 
@@ -35,8 +39,11 @@ export const getExpensesBetweenUsers = query({
 
       return meInvolved && themInvolved;
     });
-    expense.sort((a, b) => b.date - a.date);
 
+    // Sort by date (newest first)
+    expenses.sort((a, b) => b.date - a.date);
+
+    // Get settlements between the two users
     const settlements = await ctx.db
       .query("settlements")
       .filter((q) =>
@@ -58,33 +65,41 @@ export const getExpensesBetweenUsers = query({
 
     settlements.sort((a, b) => b.date - a.date);
 
+    // Calculate balance
     let balance = 0;
 
-    for await (const e of expenses) {
+    for (const e of expenses) {
       if (e.paidByUserId === currentUser._id) {
         const split = e.splits.find((s) => s.userId === userId && !s.paid);
-        if (split) balance += split.amount;
+        if (split) balance += split.amount; // They owe me
       } else {
         const split = e.splits.find(
           (s) => s.userId === currentUser._id && !s.paid
         );
-        if (split) balance -= split.amount;
+        if (split) balance -= split.amount; // I owe them
       }
     }
+
     for (const s of settlements) {
-      if (s.paidByUserId === currentUser._id) balance += s.amount;
-      else balance -= s.amount;
+      if (s.paidByUserId === currentUser._id) {
+        balance += s.amount; // I paid them back
+      } else {
+        balance -= s.amount; // They paid me back
+      }
     }
-    const other = await ctx.db.query.get(userId);
-    if (!other) throw new Error("User not found");
+
+    // Get other user's details
+    const otherUser = await ctx.db.get(userId);
+    if (!otherUser) throw new Error("User not found");
+
     return {
       expenses,
       settlements,
       otherUser: {
-        id: other._id,
-        name: other.name,
-        email: other.email,
-        imageUrl: other.imageUrl,
+        id: otherUser._id,
+        name: otherUser.name,
+        email: otherUser.email,
+        imageUrl: otherUser.imageUrl,
       },
       balance,
     };
