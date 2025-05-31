@@ -23,7 +23,7 @@ const BalanceSummary = ({ balances }) => {
       )}
       {hasOwed && (
         <div>
-          <h3 className="text-sm font-medium flex items-center mb-3">
+          <h3 className="text-sm font-bold flex items-center mb-3">
             <ArrowUpCircle className="mr-2 h-4 w-4 text-indigo-600" />
             Owe to You
           </h3>
@@ -34,7 +34,7 @@ const BalanceSummary = ({ balances }) => {
                 href={`/person/${item.userId}`}
                 className="flex items-center justify-between hover:bg-muted p-2 rounded-md transition-colors"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-2">
                   <Avatar className="h-8 w-8">
                     {item.imageUrl ? (
                       <AvatarImage src={item.imageUrl} />
@@ -54,32 +54,30 @@ const BalanceSummary = ({ balances }) => {
       )}
       {hasOwing && (
         <div>
-          <h3 className="text-sm font-medium flex items-center mb-3">
+          <h3 className="text-sm font-bold flex items-center mb-3">
             <ArrowDownCircle className="mr-2 h-4 w-4 text-amber-600" />
             You Owe
           </h3>
           <div className="space-y-3">
-            {oweDetails.youOwed.map((item) => (
-              <Link
-                key={item.userId}
-                href={`/person/${item.userId}`}
-                className="flex items-center justify-between hover:bg-muted p-2 rounded-md transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    {item.imageUrl ? (
-                      <AvatarImage src={item.imageUrl} />
-                    ) : (
-                      <AvatarFallback className="bg-[#f15bb5] text-white">
-                        {item.name?.charAt(0).toUpperCase() ?? "?"}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>{" "}
-                  <span className="text-sm">{item.name}</span>
-                </div>
-                <span>${item.amount.toFixed(2)}</span>
-              </Link>
-            ))}
+            <Link
+              key={item.userId}
+              href={`/person/${item.userId}`}
+              className="flex items-center justify-between hover:bg-muted p-2 rounded-md transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Avatar className="h-8 w-8">
+                  {item.imageUrl ? (
+                    <AvatarImage src={item.imageUrl} />
+                  ) : (
+                    <AvatarFallback className="bg-[#f15bb5] text-white">
+                      {item.name?.charAt(0).toUpperCase() ?? "?"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>{" "}
+                <span className="text-sm">{item.name}</span>
+              </div>
+              <span>${item.amount.toFixed(2)}</span>
+            </Link>
           </div>
         </div>
       )}

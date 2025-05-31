@@ -1,28 +1,31 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/convex/_generated/api";
 import { useConvexQuery } from "@/hooks/use-convex-query";
-import { ArrowLeft, ArrowLeftRight, PlusCircle } from "lucide-react";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { ArrowLeft, ArrowLeftRight, PlusCircle, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { BarLoader } from "react-spinners";
+import Link from "next/link";
 import ExpenseList from "@/components/expenseList";
 import SettlementList from "@/components/settlementList";
+import GroupBalances from "@/components/groupBalances";
+import GroupMembers from "@/components/groupMembers";
 
-const PersonPage = () => {
+const page = () => {
   const params = useParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("expenses");
 
-  const { data, isLoading } = useConvexQuery(
-    api.expenses.getExpensesBetweenUsers,
-    { userId: params.id }
-  );
+  const { data, isLoading } = useConvexQuery(api.groups.getGroupExpenses, {
+    groupId: params.id,
+  });
+  console.log(data);
 
   if (isLoading) {
     return (
@@ -31,17 +34,16 @@ const PersonPage = () => {
       </div>
     );
   }
-  const otherUser = data?.otherUser;
+  const group = data?.group;
+  const members = data?.member || [];
   const expenses = data?.expenses || [];
   const settlements = data?.settlements || [];
-  const balance = data?.balance || 0;
-
-  console.log("Full data response:", data);
-  console.log("Settlements array:", settlements);
-  console.log("Settlements count:", settlements.length);
+  const balances = data?.balances || [];
+  const userLookupMap = data?.userLookupMap || [];
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
+      {" "}
       <div className="mb-6">
         <Button
           variant="outline"
@@ -54,19 +56,16 @@ const PersonPage = () => {
         </Button>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {" "}
-            <Avatar className="h-16 w-16">
-              {otherUser?.imageUrl ? (
-                <AvatarImage src={otherUser?.imageUrl} />
-              ) : (
-                <AvatarFallback className="bg-[#f15bb5] text-white text-lg">
-                  {otherUser?.name.charAt(0).toUpperCase() || "?"}
-                </AvatarFallback>
-              )}
-            </Avatar>
+            <div className="bg-primary/10 p-4 rounded-md">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+
             <div>
-              <h1 className="text-4xl gradient-title">{otherUser.name}</h1>
-              <p className="text-muted-foreground">{otherUser.email}</p>
+              <h1 className="text-4xl gradient-title">{group?.name}</h1>
+              <p className="text-muted-foreground">{group?.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {members.length} members
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -75,7 +74,7 @@ const PersonPage = () => {
               variant="outline"
               className="bg-[#606c38] text-white hover:bg-[#81914b] transition"
             >
-              <Link href={`/settlements/user/${params.id}`}>
+              <Link href={`/settlement/user/${params.id}`}>
                 <ArrowLeftRight />
                 Settle Up
               </Link>
@@ -92,38 +91,35 @@ const PersonPage = () => {
             </Button>
           </div>
         </div>
-      </div>
-      <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition font-mono mb-4">
-        <CardHeader className="pb-2 border-b border-zinc-100 flex items-center justify-between">
-          <CardTitle className=" font-bold text-md text-zinc-700 tracking-tight text-center ">
-            Balance
-          </CardTitle>
-        </CardHeader>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="lg:col-span-2">
+            <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition font-mono mb-4">
+              <CardHeader className="pb-2 border-b border-zinc-100 flex items-center justify-between">
+                <CardTitle className=" font-bold text-md text-zinc-700 tracking-tight text-center ">
+                  Group Balance
+                </CardTitle>
+              </CardHeader>
 
-        <CardContent className="pt-4">
-          <div className="flex justify-between items-center">
-            <div>
-              {" "}
-              {balance === 0 ? (
-                <p>You are all settled up</p>
-              ) : balance > 0 ? (
-                <p>
-                  <span className="font-bold">{otherUser?.name}</span> owes you
-                </p>
-              ) : (
-                <p>
-                  You Owe <span className="font-bold">{otherUser?.name}</span>
-                </p>
-              )}
-            </div>
-            <div
-              className={`text-2xl font-bold ${balance > 0 ? "text-indigo-500" : "text-amber-600"}`}
-            >
-              ${Math.abs(balance).toFixed(2)}
-            </div>
+              <CardContent className="">
+                <GroupBalances balances={balances} />
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <Card className="bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition font-mono mb-4">
+              <CardHeader className="pb-2 border-b border-zinc-100 flex items-center justify-between">
+                <CardTitle className=" font-bold text-md text-zinc-700 tracking-tight text-center ">
+                  Members
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="pt-4">
+                <GroupMembers members={members} />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
       <Tabs
         defaultValue="expenses"
         value={activeTab}
@@ -141,15 +137,16 @@ const PersonPage = () => {
         <TabsContent value="expenses" className="space-y-4">
           <ExpenseList
             expenses={expenses}
-            showOtherPerson={false}
-            otherPersonId={params.id}
-            userLookupMap={{ [otherUser.id]: otherUser }}
+            showOtherPerson={true}
+            isGroupExpense={true}
+            userLookupMap={userLookupMap}
           />
         </TabsContent>
         <TabsContent value="settlements" className="space-y-4">
           <SettlementList
             settlements={settlements}
-            userLookupMap={{ [otherUser.id]: otherUser }}
+            userLookupMap={userLookupMap}
+            isGroupSettlement={true}
           />
         </TabsContent>
       </Tabs>
@@ -157,4 +154,4 @@ const PersonPage = () => {
   );
 };
 
-export default PersonPage;
+export default page;

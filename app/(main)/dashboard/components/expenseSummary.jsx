@@ -61,7 +61,7 @@ const ExpenseSummary = ({ totalSpent, monthlySpent }) => {
             <p className="text-sm text-muted-foreground mb-2 ">
               Current Month Spending
             </p>
-            <h3>
+            <h3 className="hover:translate-x-1 transition-transform duration-200 ease-in-out">
               ${monthlySpent?.[currentMonth]?.total?.toFixed(2) || "0.00"}
             </h3>
           </div>
@@ -69,7 +69,9 @@ const ExpenseSummary = ({ totalSpent, monthlySpent }) => {
             <p className="text-sm text-muted-foreground  mb-2">
               Current Year Spending
             </p>
-            <h3>${totalSpent?.toFixed(2) || "0.00"}</h3>
+            <h3 className="hover:translate-x-1 transition-transform duration-200 ease-in-out">
+              ${totalSpent?.toFixed(2) || "0.00"}
+            </h3>
           </div>
         </div>
         <div style={{ height: "327px" }}>

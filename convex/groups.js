@@ -84,6 +84,25 @@ export const getGroupExpenses = query({
       ledger[s.paidByUserId][s.receivedByUserId] -= s.amount; // They paid it back
     }
 
+    ids.forEach((a) => {
+      ids.forEach((b) => {
+        if (a > b) return;
+
+        //calculate the net debt between two users
+        const diff = ledger[a][b] - ledger[b][a];
+
+        if (diff > 0) {
+          ledger[a][b] = diff;
+          ledger[b][a] = 0;
+        } else if (diff < 0) {
+          ledger[b][a] = -diff;
+          ledger[a][b] = 0;
+        } else {
+          ledger[a][b] = ledger[b][a] = 0;
+        }
+      });
+    });
+
     // Step 12: Make a list of balances for each member, showing what they owe or are owed
     const balances = memberDetails.map((m) => ({
       ...m,

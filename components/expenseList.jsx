@@ -8,7 +8,7 @@ import { Badge } from "./ui/badge";
 import { Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 
 const ExpenseList = ({
   expenses,
@@ -33,7 +33,7 @@ const ExpenseList = ({
   const getUserDetails = (userId) => {
     return {
       name:
-        userId === currentUser?.id
+        userId === currentUser?._id
           ? "You"
           : userLookupMap[userId]?.name || "Other User",
       id: userId,
@@ -84,8 +84,10 @@ const ExpenseList = ({
                   </div>
 
                   <div>
-                    <h3>{expense.description}</h3>
-                    <h2>{format(new Date(expense.date), "MMM d, yyyy")}</h2>
+                    <h3 className="font-medium">{expense.description}</h3>
+                    <h2 className="text-xs text-muted-foreground">
+                      {format(new Date(expense.date), "MMM d, yyyy")}
+                    </h2>
                     {showOtherPerson && (
                       <>
                         <span> • </span>
