@@ -105,3 +105,59 @@ export const getExpensesBetweenUsers = query({
     };
   },
 });
+
+export const createExpenses = mutation({
+  args: {
+    description: v.string(),
+    amount: v.number(),
+    category: v.optional(v.string()),
+    date: v.number(),
+    paidByUserId: v.id("users"),
+    splitType: v.string(),
+    splits: v.array(
+      v.object({
+        userId: v.id("users"),
+        amount: v.number(),
+        paid: v.boolean(),
+      })
+    ),
+    groupId: v.optional(v.id("groups")),
+  },
+  handler: async (args, ctx) => {
+    const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
+
+    if (args.groupId) {
+      const group = await ctx.db.get(args.groupId);
+      if (!group) throw new Error(" Group not found");
+      const isMember = group.member.some((m) => m.id === currentUser._id);
+      if (!isMember) {
+        throw new Error("You are not a member of this group");
+      }
+    }
+
+    //Verify that splits add up to the total amount(with small tolerance for floating point issues)
+
+    const totalSplitAmount = args.splits.reduce(
+      (sum, split) => sum + split.amount,
+      0
+    );
+    const tolerance = 0.01; // Allow for small rounding errors
+
+    if (Math.abs(totalSplitAmount - args.amount) > tolerance) {
+      throw new Error("split amounts must add up to the total expense amount");
+    }
+
+    const expenseId = await ctx.db.insert("expenses", {
+      description: args.description,
+      amount: args.amount,
+      category: args.category || "Others",
+      date: args.date,
+      paidByUserId: args.paidByUserId,
+      splitType: args.splitType,
+      splits: args.splits,
+      groupId: args.groupId,
+      createdBy: currentUser._id,
+    });
+    return expenseId;
+  },
+});

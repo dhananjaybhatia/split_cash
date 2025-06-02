@@ -173,3 +173,68 @@ export const deleteExpense = mutation({
     return { success: true };
   },
 });
+
+export const getGroupOrMembers = query({
+  args: {
+    groupId: v.optional(v.id("groups")), //Optional - if provided, will return details for just this group
+  },
+  handler: async (ctx, args) => {
+    const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
+
+    const allGroups = await ctx.db.query("groups").collect();
+    const userGroups = allGroups.filter((group) =>
+      group.members.some((m) => m.userId === currentUser._id)
+    );
+    if (args.groupId) {
+      const selectedGroup = userGroups.find(
+        (group) => group._id === args.groupId
+      );
+      if (!selectedGroup) {
+        throw new Error("Group not found or your're not a member");
+      }
+
+      const memberDetails = await Promise.all(
+        selectedGroup.members.map(async (member) => {
+          const user = await ctx.db.get(member.userId);
+          if (!user) return null;
+
+          return {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            imageUrl: user.imageUrl,
+            role: member.role,
+          };
+        })
+      );
+
+      const validMembers = memberDetails.filter((m) => m !== null);
+
+      return {
+        selectedGroup: {
+          id: selectedGroup._id,
+          name: selectedGroup.name,
+          description: selectedGroup.description,
+          createdBy: selectedGroup.createdBy,
+          members: validMembers,
+        },
+        groups: userGroups.map((group) => ({
+          id: group._id,
+          name: group.name,
+          description: group.description,
+          memberCount: group.members.length,
+        })),
+      };
+    } else {
+      return {
+        selectedGroup: null,
+        groups: userGroups.map((group) => ({
+          id: group._id,
+          name: group.name,
+          description: group.description,
+          memberCount: group.members.length,
+        })),
+      };
+    }
+  },
+});
