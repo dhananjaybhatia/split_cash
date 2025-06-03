@@ -48,7 +48,6 @@ const createGroupModal = ({ isOpen, onClose, onSuccess }) => {
     api.users.searchUsers,
     { query: searchQuery }
   );
-  console.log("Search Results:", searchResults);
 
   const createGroup = useConvexMutation(api.contacts.createGroup);
 
