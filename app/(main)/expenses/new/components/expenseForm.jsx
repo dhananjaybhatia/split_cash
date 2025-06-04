@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CategorySelector from "./categorySelector";
@@ -72,6 +72,20 @@ const ExpenseForm = ({ type, onSuccess }) => {
 
   const amountValue = watch("amount");
   const paidByUserId = watch("paidByUserId");
+
+  useEffect(() => {
+    if (currentUser && participants.length === 0) {
+      setParticipants([
+        {
+          // ✅ Now correctly setting an array
+          id: currentUser._id,
+          name: currentUser.name,
+          email: currentUser.email,
+          imageUrl: currentUser.imageUrl,
+        },
+      ]);
+    }
+  }, [currentUser, participants]);
 
   const onSubmit = async (data) => {};
 
@@ -179,7 +193,10 @@ const ExpenseForm = ({ type, onSuccess }) => {
         {type === "individual" && (
           <div className={"space-y-2"}>
             <Label>Participants</Label>
-            <ParticipantSelector />
+            <ParticipantSelector
+              participants={participants}
+              onParticipantsChange={setParticipants}
+            />
             {participants.length <= 1 && (
               <p className="text-xs text-amber-600">
                 Please add at least one other participant
@@ -224,15 +241,33 @@ const ExpenseForm = ({ type, onSuccess }) => {
                   <p className="text-muted-foreground">
                     Split equally between the participants
                   </p>
-                  <SplitSelector />
+                  <SplitSelector
+                    type="equal"
+                    amount={parseFloat(amountValue) || 0}
+                    participants={participants}
+                    paidByUserId={paidByUserId}
+                    onSplitChange={setSplits}
+                  />
                 </TabsContent>
                 <TabsContent value="percentage" className={"pt-4"}>
                   <p className="text-muted-foreground">Split by percentage</p>
-                  <SplitSelector />
+                  <SplitSelector
+                    type="percentage"
+                    amount={parseFloat(amountValue) || 0}
+                    participants={participants}
+                    paidByUserId={paidByUserId}
+                    onSplitChange={setSplits}
+                  />
                 </TabsContent>
                 <TabsContent value="exact" className={"pt-4"}>
                   <p className="text-muted-foreground">Enter exact amounts</p>
-                  <SplitSelector />
+                  <SplitSelector
+                    type="exact"
+                    amount={parseFloat(amountValue) || 0}
+                    participants={participants}
+                    paidByUserId={paidByUserId}
+                    onSplitChange={setSplits}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
