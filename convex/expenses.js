@@ -123,13 +123,13 @@ export const createExpenses = mutation({
     ),
     groupId: v.optional(v.id("groups")),
   },
-  handler: async (args, ctx) => {
+  handler: async (ctx, args) => {
     const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
 
     if (args.groupId) {
       const group = await ctx.db.get(args.groupId);
       if (!group) throw new Error(" Group not found");
-      const isMember = group.member.some((m) => m.id === currentUser._id);
+      const isMember = group.members?.some((m) => m.userId === currentUser._id);
       if (!isMember) {
         throw new Error("You are not a member of this group");
       }
@@ -159,5 +159,63 @@ export const createExpenses = mutation({
       createdBy: currentUser._id,
     });
     return expenseId;
+  },
+});
+
+export const deleteExpense = mutation({
+  args: {
+    expenseId: v.id("expenses"),
+  },
+  handler: async (ctx, args) => {
+    // Get the current user
+    const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
+
+    // Get the expense
+    const expense = await ctx.db.get(args.expenseId);
+    if (!expense) {
+      throw new Error("Expense not found");
+    }
+
+    // Check if user is authorized to delete this expense
+    // Only the creator of the expense or the payer can delete it
+    if (
+      expense.createdBy !== currentUser._id &&
+      expense.paidByUserId !== currentUser._id
+    ) {
+      throw new Error("You don't have permission to delete this expense");
+    }
+
+    // Delete any settlements that specifically reference this expense
+    // Since we can't use array.includes directly in the filter, we'll
+    // fetch all settlements and then filter in memory
+    const allSettlements = await ctx.db.query("settlements").collect();
+
+    const relatedSettlements = allSettlements.filter(
+      (settlement) =>
+        settlement.relatedExpenseIds !== undefined &&
+        settlement.relatedExpenseIds.includes(args.expenseId)
+    );
+
+    for (const settlement of relatedSettlements) {
+      // Remove this expense ID from the relatedExpenseIds array
+      const updatedRelatedExpenseIds = settlement.relatedExpenseIds.filter(
+        (id) => id !== args.expenseId
+      );
+
+      if (updatedRelatedExpenseIds.length === 0) {
+        // If this was the only related expense, delete the settlement
+        await ctx.db.delete(settlement._id);
+      } else {
+        // Otherwise update the settlement to remove this expense ID
+        await ctx.db.patch(settlement._id, {
+          relatedExpenseIds: updatedRelatedExpenseIds,
+        });
+      }
+    }
+
+    // Delete the expense
+    await ctx.db.delete(args.expenseId);
+
+    return { success: true };
   },
 });

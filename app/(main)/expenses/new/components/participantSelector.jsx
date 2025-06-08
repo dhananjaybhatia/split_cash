@@ -79,21 +79,23 @@ const ParticipantSelector = ({ participants, onParticipantsChange }) => {
                 {participant.name?.charAt(0) || "?"}
               </AvatarFallback>
             </Avatar>
-            <span>{`${participant.name} (You)`}</span>
             {participant.id !== currentUser._id ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 rounded-full p-0 text-muted-foreground hover:bg-red-100 hover:text-destructive"
-                onClick={() => removeParticipant(participant.id)}
-              >
-                <div className="flex h-3 w-3 items-center justify-center rounded-full border border-muted-foreground/30 hover:border-destructive/50">
-                  <X className="h-2 w-2" />
-                </div>
-              </Button>
+              <div className="flex items-center gap-2">
+                <span>{participant.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 rounded-full p-0 text-muted-foreground hover:bg-red-100 hover:text-destructive"
+                  onClick={() => removeParticipant(participant.id)}
+                >
+                  <div className="flex h-3 w-3 items-center justify-center rounded-full border border-muted-foreground/30 hover:border-destructive/50">
+                    <X className="h-2 w-2" />
+                  </div>
+                </Button>
+              </div>
             ) : (
-              ""
+              <span>{participant.name} (You)</span>
             )}
           </Badge>
         ))}

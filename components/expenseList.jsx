@@ -18,7 +18,7 @@ const ExpenseList = ({
   userLookupMap = {},
 }) => {
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
-  const deleteExpense = useConvexMutation(api.expenses.deleteExpenses);
+  const deleteExpense = useConvexMutation(api.expenses.deleteExpense);
 
   if (!expenses || expenses.length === 0) {
     return (

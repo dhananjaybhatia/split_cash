@@ -24,6 +24,8 @@ const PersonPage = () => {
     { userId: params.id }
   );
 
+  console.log(`Data coming from person.id.page: ${data}`);
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-12">
@@ -75,7 +77,7 @@ const PersonPage = () => {
               variant="outline"
               className="bg-[#606c38] text-white hover:bg-[#81914b] transition"
             >
-              <Link href={`/settlements/user/${params.id}`}>
+              <Link href={`/settlement/user/${params.id}`}>
                 <ArrowLeftRight />
                 Settle Up
               </Link>

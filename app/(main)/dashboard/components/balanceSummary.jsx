@@ -59,25 +59,27 @@ const BalanceSummary = ({ balances }) => {
             You Owe
           </h3>
           <div className="space-y-3">
-            <Link
-              key={item.userId}
-              href={`/person/${item.userId}`}
-              className="flex items-center justify-between hover:bg-muted p-2 rounded-md transition-colors"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Avatar className="h-8 w-8">
-                  {item.imageUrl ? (
-                    <AvatarImage src={item.imageUrl} />
-                  ) : (
-                    <AvatarFallback className="bg-[#f15bb5] text-white">
-                      {item.name?.charAt(0).toUpperCase() ?? "?"}
-                    </AvatarFallback>
-                  )}
-                </Avatar>{" "}
-                <span className="text-sm">{item.name}</span>
-              </div>
-              <span>${item.amount.toFixed(2)}</span>
-            </Link>
+            {oweDetails.youOwe.map((item) => (
+              <Link
+                key={item.userId}
+                href={`/person/${item.userId}`}
+                className="flex items-center justify-between hover:bg-muted p-2 rounded-md transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Avatar className="h-8 w-8">
+                    {item.imageUrl ? (
+                      <AvatarImage src={item.imageUrl} />
+                    ) : (
+                      <AvatarFallback className="bg-[#f15bb5] text-white">
+                        {item.name?.charAt(0).toUpperCase() ?? "?"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>{" "}
+                  <span className="text-sm">{item.name}</span>
+                </div>
+                <span>${item.amount.toFixed(2)}</span>
+              </Link>
+            ))}
           </div>
         </div>
       )}

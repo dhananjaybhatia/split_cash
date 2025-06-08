@@ -106,8 +106,7 @@ const page = () => {
 
               <CardContent className="pt-4">
                 <div className="text-3xl font-extrabold text-center tracking-tight text-indigo-600">
-                  +$
-                  {balances?.youAreOwed?.toFixed(2) || "0.00"}
+                  ${balances?.youAreOwed?.toFixed(2) || "0.00"}
                 </div>
                 <p className="text-sm text-center mt-2 text-[#1b4965]">
                   From {balances?.oweDetails?.youAreOwedBy?.length || 0} people
@@ -127,7 +126,7 @@ const page = () => {
                 {balances?.oweDetails?.youOwe?.length > 0 ? (
                   <>
                     <div className="text-3xl font-extrabold text-center tracking-tight text-amber-600">
-                      -$
+                      $
                       {balances?.youOwe?.toFixed(2) || "0.00"}
                     </div>
                     <p className="text-sm text-center mt-2 text-[#dd2d4a]">

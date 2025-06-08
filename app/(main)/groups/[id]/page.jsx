@@ -74,7 +74,7 @@ const page = () => {
               variant="outline"
               className="bg-[#606c38] text-white hover:bg-[#81914b] transition"
             >
-              <Link href={`/settlement/user/${params.id}`}>
+              <Link href={`/settlement/group/${params.id}`}>
                 <ArrowLeftRight />
                 Settle Up
               </Link>
