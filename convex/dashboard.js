@@ -8,10 +8,10 @@ export const getUserBalance = query({
 
     const expenses = (await ctx.db.query("expenses").collect()).filter(
       (e) =>
-        !e.groupId &&
-        (e.paidByUserId === currentUser._id ||
-          e.splits.some((s) => s.userId === currentUser._id))
+        e.paidByUserId === currentUser._id ||
+        e.splits.some((s) => s.userId === currentUser._id)
     );
+
     let youOwe = 0;
     let youAreOwed = 0;
     const balanceByUser = {};
@@ -34,21 +34,34 @@ export const getUserBalance = query({
     }
     const settlements = (await ctx.db.query("settlements").collect()).filter(
       (s) =>
-        !s.groupId &&
-        (s.paidByUserId === currentUser._id ||
-          s.receivedByUserId === currentUser._id)
+        s.paidByUserId === currentUser._id ||
+        s.receivedByUserId === currentUser._id
     );
+    // for (const s of settlements) {
+    //   if (s.paidByUserId === currentUser._id) {
+    //     youOwe -= s.amount;
+    //     (balanceByUser[s.receivedByUserId] ??= { owed: 0, owing: 0 }).owing -=
+    //       s.amount;
+    //   } else {
+    //     youAreOwed -= s.amount;
+    //     (balanceByUser[s.paidByUserId] ??= { owed: 0, owing: 0 }).owed -=
+    //       s.amount;
+    //   }
+    // }
+
     for (const s of settlements) {
-      if (s.paidByUserId === currentUser._id) {
+      const paidTo = s.receivedByUserId;
+      const paidBy = s.paidByUserId;
+
+      if (paidBy === currentUser._id) {
         youOwe -= s.amount;
-        (balanceByUser[s.receivedByUserId] ??= { owed: 0, owing: 0 }).owing -=
-          s.amount;
-      } else {
+        (balanceByUser[paidTo] ??= { owed: 0, owing: 0 }).owing -= s.amount;
+      } else if (paidTo === currentUser._id) {
         youAreOwed -= s.amount;
-        (balanceByUser[s.paidByUserId] ??= { owed: 0, owing: 0 }).owed -=
-          s.amount;
+        (balanceByUser[paidBy] ??= { owed: 0, owing: 0 }).owed -= s.amount;
       }
     }
+
     const youOweList = [];
     const youAreOwedByList = [];
 
@@ -70,8 +83,9 @@ export const getUserBalance = query({
 
     return {
       youOwe,
-      youAreOwed,
-      totalBalance: youAreOwed - youOwe,
+      youAreOwed: Math.max(0, youAreOwed),
+      totalBalance:
+        Math.max(0, youAreOwed - youOwe) - Math.max(0, youOwe - youAreOwed),
       oweDetails: { youOwe: youOweList, youAreOwedBy: youAreOwedByList },
     };
   },
