@@ -31,7 +31,7 @@ export default function Home() {
               size={"lg"}
               className="bg-[#ff0054] text-[#F7E1D7] transition transform hover:scale-105 border-none"
             >
-              <Link href="/">
+              <Link href="/dashboard">
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
